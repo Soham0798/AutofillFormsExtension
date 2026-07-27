@@ -1,28 +1,155 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8"/>
-        <title>AutoFill Forms - Settings</title>
-    </head>
-    <body>
-        <h1>Your Profile</h1>
-        <form id="profileForm">
-            <label>First name <input type="text" id="first_name" /></label><br/>
-            <label>Last name <input type="text" id="last_name" /></label><br/>
-            <label>Email <input type="text" id="email" /></label><br/>
-            <label>Phone <input type="text" id="phone" /></label><br/>
-            <label>DOB <input type="text" id="dob" /></label><br/>
-            <label>Street address <input type="text" id="street_address" /></label><br/>
-            <label>City <input type="text" id="city" /></label><br/>
-            <label>State <input type="text" id="state" /></label><br/>
-            <label>ZIP <input type="text" id="zip" /></label><br/>
-            <label>Country <input type="text" id="country" /></label><br/>
-            <label>Employer <input type="text" id="employer" /></label><br/>
-            <label>Job title <input type="text" id="job_title" /></label><br/>  
-            <button type="submit">Save</button>
-        </form>
-        <span id="saveStatus"></span>
-        <script src="schema.js"></script>
-        <script src="options.js"></script>
-    </body>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>AutoFill Forms — Settings</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 560px;
+    margin: 48px auto;
+    padding: 0 20px;
+    color: #1a1a1a;
+  }
+  h1 {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6b7280;
+    margin-top: 32px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+  }
+  .row {
+    display: flex;
+    gap: 12px;
+  }
+  .field {
+    margin-bottom: 14px;
+    flex: 1;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #374151;
+  }
+  input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 14px;
+    transition: border-color 0.15s ease;
+  }
+  input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  .actions {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #1d4ed8;
+  }
+  #saveStatus {
+    font-size: 13px;
+    color: #15803d;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  #saveStatus.show {
+    opacity: 1;
+  }
+  .hint {
+    font-size: 12.5px;
+    color: #6b7280;
+    margin: -6px 0 14px;
+  }
+  .warning-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: #92400e;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+  <h1>AutoFill Forms</h1>
+  <p class="subtitle">Stored locally in your browser. Only used when you click "Fill this form."</p>
+
+  <form id="profileForm">
+    <h2>Personal</h2>
+    <div class="row">
+      <div class="field"><label for="first_name">First name</label><input type="text" id="first_name" /></div>
+      <div class="field"><label for="last_name">Last name</label><input type="text" id="last_name" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="email">Email</label><input type="text" id="email" /></div>
+      <div class="field"><label for="phone">Phone</label><input type="text" id="phone" /></div>
+    </div>
+    <div class="field"><label for="dob">Date of birth</label><input type="text" id="dob" /></div>
+
+    <h2>Address</h2>
+    <div class="field"><label for="street_address">Street address</label><input type="text" id="street_address" /></div>
+    <div class="row">
+      <div class="field"><label for="city">City</label><input type="text" id="city" /></div>
+      <div class="field"><label for="state">State</label><input type="text" id="state" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="zip">ZIP</label><input type="text" id="zip" /></div>
+      <div class="field"><label for="country">Country</label><input type="text" id="country" /></div>
+    </div>
+
+    <h2>Work</h2>
+    <div class="row">
+      <div class="field"><label for="employer">Employer</label><input type="text" id="employer" /></div>
+      <div class="field"><label for="job_title">Job title</label><input type="text" id="job_title" /></div>
+    </div>
+
+    <h2>LLM Fallback</h2>
+    <p class="hint">Only used when the fast local matcher can't confidently match a field.</p>
+    <div class="field"><label for="apiKey">Gemini API key</label><input type="password" id="apiKey" autocomplete="off" /></div>
+    <div class="warning-box">Anyone with local access to this browser could read this key from storage. Avoid using this on a shared computer.</div>
+
+    <div class="actions">
+      <button type="submit">Save</button>
+      <span id="saveStatus">Saved.</span>
+    </div>
+  </form>
+
+  <script src="schema.js"></script>
+  <script src="options.js"></script>
+</body>
 </html>

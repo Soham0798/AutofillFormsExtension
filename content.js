@@ -95,18 +95,25 @@
     }
     
     function getLabelText(el){
+        const listItem = el.closest('[role="listitem"]');
+        if (listItem) {
+        const heading = listItem.querySelector('[role="heading"]');
+        if (heading && heading.textContent.trim()) {
+            return heading.textContent.trim();
+        }
+        }
         if(el.labels && el.labels.length > 0 && el.labels[0].textContent.trim()){
             return el.labels[0].textContent.trim();
         }
         const parentLabel = el.closest("label");
-        if(parentLabel && parent.textContent.trim()){
+        if(parentLabel && parentLabel.textContent.trim()){
             return parentLabel.textContent.replace(el.value || "", "").trim();
         }
         if(el.getAttribute("aria-label")){
             return el.getAttribute("aria-label").trim();
         }
 
-        const labelledBy = el.getAttribute("aria-labbeledby");
+        const labelledBy = el.getAttribute("aria-labbelledby");
         if(labelledBy){
             const texts = labelledBy
             .split(/\s+/)
@@ -138,6 +145,35 @@
         return "";
     }
 
+    async function llmMatchFields(unmatchedFields, alreadyMatchedKeys) {
+  const remainingKeys = PROFILE_SCHEMA_KEYS.filter((k) => !alreadyMatchedKeys.includes(k));
+  if (unmatchedFields.length === 0 || remainingKeys.length === 0) return {};
+
+  const payload = {
+    domain: window.location.hostname,
+    remainingKeys,
+    fields: unmatchedFields.map((f) => ({
+      idx: f.idx, label: f.label, name: f.name, id: f.id, placeholder: f.placeholder, type: f.type,
+    })),
+  };
+
+  try {
+    const response = await chrome.runtime.sendMessage({ type: "LLM_MATCH_FIELDS", payload });
+    if (!response?.ok) {
+      console.warn("[AutoFill] LLM fallback unavailable:", response?.error);
+      return {};
+    }
+    const result = {};
+    for (const [key, idx] of Object.entries(response.matches || {})) {
+      const field = unmatchedFields.find((f) => f.idx === idx);
+      if (field) result[key] = field;
+    }
+    return result;
+  } catch (err) {
+    console.warn("[AutoFill] LLM fallback error:", err);
+    return {};
+  }
+}
 
     function detectFields(){
         const candidates = Array.from(document.querySelectorAll("input,select,textarea"));
@@ -157,20 +193,53 @@
         });
         return fields;
     }
-    const fields = detectFields();
-    const matched = matchFields(fields);
-    chrome.storage.local.get("profile", ({profile}) => {
-    console.log("[AutoFill] profile:", profile);
-    if (!profile) {
-        console.log("[AutoFill] No profile saved yet.");
-        return;
-    }
-    for (const [key, field] of Object.entries(matched)) {
-        const value = profile[key];
-        console.log("[AutoFill] trying", key, "value:", JSON.stringify(value), "el:", field.el);
-        if (value) fillField(field.el, value);
-    }
-    console.log("[AutoFill] Fill complete");
-    });
+    async function run() {
+  const { profile } = await chrome.storage.local.get("profile");
+  if (!profile || Object.values(profile).every((v) => !v)) {
     window.__autofillFormsRunning = false;
+    return { ok: false, reason: "EMPTY_PROFILE" };
+  }
+
+  const fields = detectFields();
+  if (fields.length === 0) {
+    window.__autofillFormsRunning = false;
+    return { ok: false, reason: "NO_FIELDS_FOUND" };
+  }
+
+  const matched = matchFields(fields);
+  const unmatched = fields.filter((f) => !Object.values(matched).some((m) => m.idx === f.idx));
+
+  const llmMatches = await llmMatchFields(unmatched, Object.keys(matched));
+  Object.assign(matched, llmMatches);
+
+  let filledCount = 0;
+  let attemptedCount = 0;
+
+  for (const [key, field] of Object.entries(matched)) {
+    const value = profile[key];
+    if (!value) continue;
+    attemptedCount++;
+    fillField(field.el, value);
+    filledCount++;
+  }
+
+  window.__autofillFormsRunning = false;
+
+  return {
+    ok: true,
+    totalFieldsOnPage: fields.length,
+    matchedCount: Object.keys(matched).length,
+    filledCount,
+    attemptedCount,
+    unmatchedFieldCount: fields.length - Object.keys(matched).length,
+  };
+}
+
+function clearAllFills() {
+  document.querySelectorAll('[style*="outline"]').forEach((el) => {
+    el.style.outline = "";
+  });
+}
+
+window.__autofillForms = { run, clearAllFills };
 })();
