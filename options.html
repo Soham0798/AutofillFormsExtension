@@ -95,13 +95,20 @@
     margin: -6px 0 14px;
   }
   .warning-box {
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    padding: 10px 14px;
-    border-radius: 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 12px 16px;
+    border-radius: 12px;
     font-size: 12.5px;
-    color: #92400e;
+    color: #7f1d1d;
     margin-top: 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .warning-box svg {
+    flex-shrink: 0;
+    margin-top: 3px;
   }
 </style>
 </head>
@@ -141,7 +148,14 @@
     <h2>LLM Fallback</h2>
     <p class="hint">Only used when the fast local matcher can't confidently match a field.</p>
     <div class="field"><label for="apiKey">Gemini API key</label><input type="password" id="apiKey" autocomplete="off" /></div>
-    <div class="warning-box">Anyone with local access to this browser could read this key from storage. Avoid using this on a shared computer.</div>
+    <div class="warning-box">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" stroke="#ef4444" stroke-width="2"/>
+    <path d="M12 7v6" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="16.5" r="1.1" fill="#ef4444"/>
+  </svg>
+  <span>Anyone with local access to this browser could read this key from storage. Avoid using this on a shared computer.</span>
+</div>
 
     <div class="actions">
       <button type="submit">Save</button>

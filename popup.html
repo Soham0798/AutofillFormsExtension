@@ -14,7 +14,64 @@
       }
       body{
         font-family: "Josefin Sans", sans-serif;
+        background: #0a0a0a;
+        color: #f5f5f5;
+        padding: 20px;
       }
+      h1{
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 14px;
+        letter-spacing: 0.02em;
+      }
+      button{
+        width: 100%;
+        padding: 10px 14px;
+        font-family: "Josefin Sans", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 8px;
+        letter-spacing: 0.02em; 
+      }
+      #fillBtn { background: #f5f5f5; color: #0a0a0a; }
+      #fillBtn:hover { background: #e0e0e0; }
+      #fillBtn:disabled { background: #444; color: #999; cursor: not-allowed; }
+      #clearBtn { background: #1a1a1a; color: #f5f5f5; border: 1px solid #333; }
+      #clearBtn:hover { background: #222; }
+      #status {
+        font-size: 12.5px;
+        color: #999;
+        margin-top: 4px;
+        min-height: 16px;
+      }
+      #status.success { color: #4ade80; }
+      #status.warn { color: #fbbf24; }
+      #status.error { color: #f87171; }
+      .footer {
+        margin-top: 14px;
+        padding-top: 10px;
+        border-top: 1px solid #222;
+        text-align: center;
+      }
+      .footer a {
+        font-size: 12px;
+        color: #999;
+        text-decoration: none;
+      }
+      .footer a:hover { color: #f5f5f5; }
     </style>
   </head>
+  <body>
+    <h1>AutoFill Forms</h1>
+    <button id="fillBtn">Fill this form</button>
+    <button id="clearBtn" style="display: none">Clear all fills</button>
+    <div id="status"></div>
+    <div class="footer">
+      <a href="#" id="optionsLink">Edit my profile</a>
+    </div>
+    <script src="popup.js"></script>
+  </body>
 </html>
